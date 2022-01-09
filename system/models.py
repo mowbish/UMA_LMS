@@ -42,7 +42,7 @@ class Person(AbstractUser):
 
 class Professor(models.Model):
     user = models.ForeignKey(Person, on_delete=models.CASCADE)
-    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
+    # faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.user.username
