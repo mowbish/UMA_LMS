@@ -68,8 +68,8 @@ class Professor(models.Model):
         (3, "associate_professors"),
         (4, "full_professors"),
     )
-    teaching_area = models.ForeignKey(ScientificGroup, on_delete=models.CASCADE)
     rank_of_professor = models.IntegerField(choices=levels)
+    teaching_area = models.ForeignKey(ScientificGroup, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.user.username
@@ -111,11 +111,9 @@ class Lesson(models.Model):
     professor = models.ForeignKey(Professor, on_delete=models.CASCADE)
     students = models.ManyToManyField(Student, related_name='student_lesson')
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
-    exclusive = 1
-    general = 2
     CHOICES = (
-        (exclusive, "exclusive"),
-        (general, "general")
+        (1, "exclusive"),
+        (2, "general")
     )
     lesson_type = models.PositiveSmallIntegerField(choices=CHOICES)
     class_of_lesson = models.ManyToManyField(Class)
