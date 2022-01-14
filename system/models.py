@@ -1,7 +1,9 @@
-from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
+import random
+import uuid
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
 
 
 class Collage(models.Model):
@@ -53,9 +55,10 @@ class ScientificGroup(models.Model):
 
 
 class Person(AbstractUser):
-    phone_number_regex = RegexValidator(regex=r"^\+?1?\d{8,15}$", message=_('Must enter a valid phone number'))
+    slug = models.SlugField(max_length=50, unique=True)
+    phone_number_regex = RegexValidator(regex=r"^\+?1?\d{8,15}$", message='Must enter a valid phone number')
     phone_number = models.CharField(validators=[phone_number_regex], max_length=16, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
+    mailing_address = models.CharField(max_length=200, blank=True)
     is_student = models.BooleanField(default=False)
     is_professor = models.BooleanField(default=False)
 
@@ -77,15 +80,16 @@ class Professor(models.Model):
 
 class Student(models.Model):
     user = models.ForeignKey(Person, on_delete=models.CASCADE)
-    slug = models.SlugField(max_length=50, unique=True)
+
     CHOICES = (
         (1, "Bachelor"),
         (2, "Master"),
         (3, "PhD"),
     )
-    grade = models.IntegerField(max_length=10, choices=CHOICES)
+    student_number = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    entered_time = models.DateField(auto_now=True, editable=False)
+    grade = models.IntegerField(choices=CHOICES)
     term = models.PositiveSmallIntegerField()
-    # term = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(14)])
     image = models.FileField(upload_to="media/student_profiles/", blank=True, null=True)
 
     def __str__(self):
