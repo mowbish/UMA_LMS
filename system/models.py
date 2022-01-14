@@ -23,6 +23,35 @@ class Faculty(models.Model):
         return reverse('system:faculties', args=self.slug)
 
 
+class ScientificGroup(models.Model):
+    name = models.CharField(max_length=100)
+    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
+    slug = models.SlugField(max_length=100, db_index=True, unique=True, blank=True, null=True, )
+    parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'ScientificGroups'
+        verbose_name = 'ScientificGroup'
+        verbose_name_plural = 'ScientificGroups'
+
+    def __str__(self):
+        return f'{self.name}'
+
+    def save(self, *args, **kwargs):
+        # Raise on circular reference
+        parent = self.parent
+        while parent is not None:
+            if parent == self:
+                raise RuntimeError("Circular references not allowed")
+            parent = parent.parent
+
+        super(ScientificGroup, self).save(*args, **kwargs)
+
+    @property
+    def children(self):
+        return self.ScientificGroup_set.all().order_by("title")
+
+
 class Person(AbstractUser):
     phone_number_regex = RegexValidator(regex=r"^\+?1?\d{8,15}$", message=_('Must enter a valid phone number'))
     phone_number = models.CharField(validators=[phone_number_regex], max_length=16, blank=True)
@@ -33,9 +62,14 @@ class Person(AbstractUser):
 
 class Professor(models.Model):
     user = models.ForeignKey(Person, on_delete=models.CASCADE)
-    
-    teaching_area = models.ForeignKey()
-    # faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
+    levels = (
+        (1, "lecturer"),
+        (2, "assistant_professors"),
+        (3, "associate_professors"),
+        (4, "full_professors"),
+    )
+    teaching_area = models.ForeignKey(ScientificGroup, on_delete=models.CASCADE)
+    rank_of_professor = models.IntegerField(choices=levels)
 
     def __str__(self):
         return self.user.username
@@ -44,16 +78,14 @@ class Professor(models.Model):
 class Student(models.Model):
     user = models.ForeignKey(Person, on_delete=models.CASCADE)
     slug = models.SlugField(max_length=50, unique=True)
-    Bachelor = "Bachelor"
-    Master = "Master"
-    PhD = "PhD"
     CHOICES = (
-        (Bachelor, "Bachelor"),
-        (Master, "Master"),
-        (PhD, "PhD"),
+        (1, "Bachelor"),
+        (2, "Master"),
+        (3, "PhD"),
     )
-    grade = models.CharField(max_length=10, choices=CHOICES)
-
+    grade = models.IntegerField(max_length=10, choices=CHOICES)
+    term = models.PositiveSmallIntegerField()
+    # term = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(14)])
     image = models.FileField(upload_to="media/student_profiles/", blank=True, null=True)
 
     def __str__(self):
@@ -75,7 +107,7 @@ class Class(models.Model):
 
 class Lesson(models.Model):
     label = models.CharField(max_length=200)
-    term = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(14)])
+    unit = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(3)])
     professor = models.ForeignKey(Professor, on_delete=models.CASCADE)
     students = models.ManyToManyField(Student, related_name='student_lesson')
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
