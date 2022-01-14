@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
 
@@ -22,26 +23,18 @@ class Faculty(models.Model):
         return reverse('system:faculties', args=self.slug)
 
 
-class Class(models.Model):
-    name = models.CharField(max_length=200)
-    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
-    CHOICES = (
-        (1, 'activate'),
-        (2, 'deactivate'),
-    )
-    status = models.PositiveSmallIntegerField(choices=CHOICES)
-
-    def __str__(self):
-        return self.name
-
-
 class Person(AbstractUser):
+    phone_number_regex = RegexValidator(regex=r"^\+?1?\d{8,15}$", message=_('Must enter a valid phone number'))
+    phone_number = models.CharField(validators=[phone_number_regex], max_length=16, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
     is_student = models.BooleanField(default=False)
     is_professor = models.BooleanField(default=False)
 
 
 class Professor(models.Model):
     user = models.ForeignKey(Person, on_delete=models.CASCADE)
+    
+    teaching_area = models.ForeignKey()
     # faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -67,8 +60,22 @@ class Student(models.Model):
         return self.user.username
 
 
+class Class(models.Model):
+    name = models.CharField(max_length=200)
+    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
+    CHOICES = (
+        (1, 'activate'),
+        (2, 'deactivate'),
+    )
+    status = models.PositiveSmallIntegerField(choices=CHOICES)
+
+    def __str__(self):
+        return self.name
+
+
 class Lesson(models.Model):
     label = models.CharField(max_length=200)
+    term = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(14)])
     professor = models.ForeignKey(Professor, on_delete=models.CASCADE)
     students = models.ManyToManyField(Student, related_name='student_lesson')
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
@@ -80,18 +87,20 @@ class Lesson(models.Model):
     )
     lesson_type = models.PositiveSmallIntegerField(choices=CHOICES)
     class_of_lesson = models.ManyToManyField(Class)
-    task = models.ForeignKey("Task", on_delete=models.CASCADE, null=True, blank=True)
+    start_time = models.DateTimeField(auto_now=True)
+    end_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.label
 
 
 class Task(models.Model):
+    lesson = models.ForeignKey(Lesson, on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=220)
     description = models.TextField()
     image = models.FileField(upload_to="media/Tasks/", blank=True, null=True)
     score = models.SmallIntegerField()
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
     updated = models.DateTimeField(auto_now=True)
     expires = models.DateTimeField(auto_now=True)
 
