@@ -2,7 +2,7 @@ import random
 import uuid
 from django.db import models
 from django.urls import reverse
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, User
 from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
 
 
@@ -23,8 +23,8 @@ class Faculty(models.Model):
     def __str__(self):
         return self.name
 
-    def get_absolute_url(self):
-        return reverse('system:faculties', args=self.slug)
+    # def get_absolute_url(self):
+    #     return reverse('system:faculties', args=self.slug)
 
 
 class ScientificGroup(models.Model):
@@ -56,46 +56,43 @@ class ScientificGroup(models.Model):
         return self.ScientificGroup_set.all().order_by("title")
 
 
-class Person(AbstractUser):
-    slug = models.SlugField(max_length=50, unique=True)
+class Professor(User):
+    slug = models.SlugField(max_length=50, unique=True, null=True, blank=True)
     phone_number_regex = RegexValidator(regex=r"^\+?1?\d{8,15}$", message='Must enter a valid phone number')
     phone_number = models.CharField(validators=[phone_number_regex], max_length=16, blank=True)
-    mailing_address = models.CharField(max_length=200, blank=True)
-    is_student = models.BooleanField(default=False)
-    is_professor = models.BooleanField(default=False)
-
-
-class Professor(models.Model):
-    user = models.ForeignKey(Person, on_delete=models.CASCADE)
     levels = (
         (1, "lecturer"),
         (2, "assistant_professors"),
         (3, "associate_professors"),
         (4, "full_professors"),
     )
+
     rank_of_professor = models.IntegerField(choices=levels)
     teaching_area = models.ForeignKey(ScientificGroup, on_delete=models.CASCADE)
+    mailing_address = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
-        return self.user.username
+        return self.username
 
 
-class Student(models.Model):
-    user = models.ForeignKey(Person, on_delete=models.CASCADE)
-
+class Student(User):
+    slug = models.SlugField(max_length=50, unique=True, null=True, blank=True)
+    phone_number_regex = RegexValidator(regex=r"^\+?1?\d{8,15}$", message='Must enter a valid phone number')
+    phone_number = models.CharField(validators=[phone_number_regex], max_length=16, blank=True)
     CHOICES = (
         (1, "Bachelor"),
         (2, "Master"),
         (3, "PhD"),
     )
+    grade = models.IntegerField(choices=CHOICES)
     student_number = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     entered_time = models.DateField(auto_now=True, editable=False)
-    grade = models.IntegerField(choices=CHOICES)
-    term = models.PositiveSmallIntegerField()
+    term = models.PositiveSmallIntegerField(default=1)
+    mailing_address = models.CharField(max_length=200, blank=True)
     image = models.FileField(upload_to="media/student_profiles/", blank=True, null=True)
 
     def __str__(self):
-        return self.user.username
+        return self.username
 
 
 class Class(models.Model):
@@ -114,6 +111,7 @@ class Class(models.Model):
 class Lesson(models.Model):
     label = models.CharField(max_length=200)
     unit = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(3)])
+    slug = models.SlugField(max_length=50, unique=True)
     professor = models.ForeignKey(Professor, on_delete=models.CASCADE)
     students = models.ManyToManyField(Student, related_name='student_lesson')
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
