@@ -16,6 +16,8 @@ class Collage(models.Model):
 class Faculty(models.Model):
     name = models.CharField(max_length=200)
     collage = models.ForeignKey(Collage, on_delete=models.CASCADE)
+    dean = models.CharField(max_length=45, unique=True)
+    detail = models.TextField()
     slug = models.SlugField(max_length=50, unique=True)
 
     def __str__(self):
@@ -128,9 +130,18 @@ class Lesson(models.Model):
         return self.label
 
 
+class Content(models.Model):
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    title = models.CharField(max_length=220)
+    description = models.TextField()
+    image = models.FileField(upload_to="media/Contents/", blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+    updated = models.DateTimeField(auto_now=True)
+
+
 class Task(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.DO_NOTHING)
-    name = models.CharField(max_length=220)
+    title = models.CharField(max_length=220)
     description = models.TextField()
     image = models.FileField(upload_to="media/Tasks/", blank=True, null=True)
     score = models.SmallIntegerField()
@@ -139,4 +150,4 @@ class Task(models.Model):
     expires = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.title
