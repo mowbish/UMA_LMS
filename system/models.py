@@ -95,19 +95,6 @@ class Student(User):
         return self.username
 
 
-class Class(models.Model):
-    name = models.CharField(max_length=200)
-    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE)
-    CHOICES = (
-        (1, 'activate'),
-        (2, 'deactivate'),
-    )
-    status = models.PositiveSmallIntegerField(choices=CHOICES)
-
-    def __str__(self):
-        return self.name
-
-
 class Lesson(models.Model):
     label = models.CharField(max_length=200)
     unit = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(3)])
@@ -120,12 +107,25 @@ class Lesson(models.Model):
         (2, "general")
     )
     lesson_type = models.PositiveSmallIntegerField(choices=CHOICES)
-    class_of_lesson = models.ManyToManyField(Class)
-    start_time = models.DateTimeField(auto_now=True)
-    end_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.label
+
+
+class Room(models.Model):
+    name = models.CharField(max_length=200)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    CHOICES = (
+        (1, 'activate'),
+        (2, 'deactivate'),
+    )
+    status = models.PositiveSmallIntegerField(choices=CHOICES)
+    start_time = models.DateTimeField(auto_now=True)
+    end_time = models.DateTimeField(auto_now=True)
+    slug = models.SlugField(unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Content(models.Model):
