@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework.generics import ListCreateAPIView
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 from .serializers import (CollageSerializer, FacultySerializer,
@@ -37,10 +38,25 @@ class ShowScientificGroupAPIView(viewsets.ReadOnlyModelViewSet):
 
 
 class CreateProfessorAPIView(ListCreateAPIView):
+    """
+        As the name implies, it is used to create and show a professor
+    """
     serializer_class = CreateProfessorSerializer
     queryset = Professor.objects.all()
 
 
 class CreateStudentAPIView(ListCreateAPIView):
+    """
+        And this class for showing and creating students
+    """
     serializer_class = CreateStudentSerializer
     queryset = Student.objects.all()
+
+
+class CreateLessonAPIView(ListCreateAPIView):
+    """
+        just staff users (Professors) can create lesson
+    """
+    permission_classes = (IsAdminUser,)
+    serializer_class = LessonSerializer
+    queryset = Lesson.objects.all()
