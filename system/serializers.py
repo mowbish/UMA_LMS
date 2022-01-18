@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from .models import (Collage, Faculty, ScientificGroup,
-                     Professor, Student, Class,
+                     Professor, Student, Room,
                      Lesson, Content, Task, )
 
 
@@ -109,16 +109,32 @@ class CreateStudentSerializer(serializers.ModelSerializer):
         return student
 
 
-class ClassSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Class
-        fields = "__all__"
-
-
 class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
         fields = "__all__"
+
+
+class CreateRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = "__all__"
+        extra_kwargs = {
+            'start_time': {'required': True},
+            'end_time': {'required': True}
+        }
+
+    def create(self, validated_data):
+        room = Room.objects.create(name=validated_data["name"],
+                                   lesson=validated_data["lesson"],
+                                   status=validated_data["status"],
+                                   start_time=validated_data["start_time"],
+                                   end_time=validated_data["end_time"],
+                                   slug=validated_data["slug"]
+                                   )
+        room.save()
+
+        return room
 
 
 class ContentSerializer(serializers.ModelSerializer):
