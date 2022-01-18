@@ -37,7 +37,7 @@ class CreateProfessorSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
-        model = Student
+        model = Professor
         fields = (
             'username', 'password', 'password2', 'email', 'first_name', 'last_name',
             'rank_of_professor', 'teaching_area'
@@ -60,7 +60,8 @@ class CreateProfessorSerializer(serializers.ModelSerializer):
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
             rank_of_professor=validated_data['rank_of_professor'],
-            teaching_area=validated_data['teaching_area']
+            teaching_area=validated_data['teaching_area'],
+            is_staff=True
         )
 
         professor.set_password(validated_data['password'])
