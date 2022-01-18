@@ -5,11 +5,11 @@ from rest_framework.response import Response
 
 from .serializers import (CollageSerializer, FacultySerializer,
                           LessonSerializer, ScientificGroupSerializer, CreateStudentSerializer,
-                          CreateProfessorSerializer)
+                          CreateProfessorSerializer, RoomSerializer)
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from .models import (Collage, Faculty, ScientificGroup,
-                     Professor, Student, Class,
+                     Professor, Student, Room,
                      Lesson, Content, Task, )
 
 
@@ -55,8 +55,18 @@ class CreateStudentAPIView(ListCreateAPIView):
 
 class CreateLessonAPIView(ListCreateAPIView):
     """
-        just staff users (Professors) can create lesson
+        Create lesson for Rooms and just staff
+        users or professors can create lesson
     """
     permission_classes = (IsAdminUser,)
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
+
+
+class CreateRoomAPIView(ListCreateAPIView):
+    """
+        Just staff users (Professors) can create Room
+    """
+    permission_classes = (IsAdminUser,)
+    serializer_class = RoomSerializer
+    queryset = Room.objects.all()
