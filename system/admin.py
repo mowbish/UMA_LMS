@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import (Collage, Faculty, Class, Professor, Student, Lesson, Task, ScientificGroup)
+from .models import (Collage, Faculty, Room, Professor, Student, Lesson, Task, ScientificGroup)
 from django.contrib.auth.admin import UserAdmin
 
 
@@ -19,8 +19,8 @@ class ScientificGroupAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Class)
-class ClassAdmin(admin.ModelAdmin):
+@admin.register(Room)
+class RoomAdmin(admin.ModelAdmin):
     pass
 
 
