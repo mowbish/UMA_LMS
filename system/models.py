@@ -120,8 +120,8 @@ class Room(models.Model):
         (2, 'deactivate'),
     )
     status = models.PositiveSmallIntegerField(choices=CHOICES)
-    start_time = models.DateTimeField(auto_now=True)
-    end_time = models.DateTimeField(auto_now=True)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
     slug = models.SlugField(unique=True)
 
     def __str__(self):
