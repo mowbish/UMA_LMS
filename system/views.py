@@ -1,13 +1,18 @@
+from datetime import datetime
+
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
-from rest_framework.generics import ListCreateAPIView
-from rest_framework.permissions import IsAdminUser
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView, CreateAPIView
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 from .serializers import (CollageSerializer, FacultySerializer,
                           LessonSerializer, ScientificGroupSerializer, CreateStudentSerializer,
-                          CreateProfessorSerializer, RoomSerializer)
+                          CreateProfessorSerializer, RoomSerializer, CreateRoomSerializer)
 from rest_framework.views import APIView
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from .models import (Collage, Faculty, ScientificGroup,
                      Professor, Student, Room,
                      Lesson, Content, Task, )
@@ -63,10 +68,37 @@ class CreateLessonAPIView(ListCreateAPIView):
     queryset = Lesson.objects.all()
 
 
-class CreateRoomAPIView(ListCreateAPIView):
+class CreateRoomAPIView(CreateAPIView):
     """
         Just staff users (Professors) can create Room
     """
     permission_classes = (IsAdminUser,)
-    serializer_class = RoomSerializer
+    serializer_class = CreateRoomSerializer
     queryset = Room.objects.all()
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def show_rooms(request):
+    """
+    List all rooms that student can be there
+    """
+    if request.method == 'GET':
+
+        try:
+            student = Student.objects.get(username=request.user.username)
+        except:
+            return Response(f'you are not student')
+        rooms = Room.objects.filter(status=1, lesson__students__student_number=student.student_number)
+        serializer = RoomSerializer(rooms, many=True)
+
+        return Response(serializer.data)
+
+
+@api_view(['GET'])
+def room_detail(request, slug):
+    if request.method == 'GET':
+        room = Room.objects.filter(slug=slug)
+        content = Content.objects.filter(lesson__room=room)
+        serializer = RoomSerializer(room, many=True)
+        return Response(serializer.data)
