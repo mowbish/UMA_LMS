@@ -137,6 +137,14 @@ class CreateRoomSerializer(serializers.ModelSerializer):
         return room
 
 
+class RoomSerializer(serializers.ModelSerializer):
+    lesson = serializers.StringRelatedField()
+
+    class Meta:
+        model = Room
+        fields = "__all__"
+
+
 class ContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Content
