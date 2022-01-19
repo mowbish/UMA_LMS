@@ -132,7 +132,7 @@ class Content(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     title = models.CharField(max_length=220)
     description = models.TextField()
-    image = models.FileField(upload_to="media/Contents/", blank=True, null=True)
+    file = models.FileField(upload_to="media/Contents/", blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, editable=False)
     updated = models.DateTimeField(auto_now=True)
 
@@ -141,7 +141,7 @@ class Task(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.DO_NOTHING)
     title = models.CharField(max_length=220)
     description = models.TextField()
-    image = models.FileField(upload_to="media/Tasks/", blank=True, null=True)
+    file = models.FileField(upload_to="media/Tasks/", blank=True, null=True)
     score = models.SmallIntegerField()
     created = models.DateTimeField(auto_now_add=True, editable=False)
     updated = models.DateTimeField(auto_now=True)
