@@ -5,12 +5,13 @@ from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView, CreateAPIView
+from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 from .serializers import (CollageSerializer, FacultySerializer,
                           LessonSerializer, ScientificGroupSerializer, CreateStudentSerializer,
-                          CreateProfessorSerializer, RoomSerializer, CreateRoomSerializer)
+                          CreateProfessorSerializer, RoomSerializer, CreateRoomSerializer, ContentSerializer)
 from rest_framework.views import APIView
 from rest_framework import viewsets, status
 from .models import (Collage, Faculty, ScientificGroup,
@@ -102,3 +103,40 @@ def room_detail(request, slug):
         content = Content.objects.filter(lesson__room=room)
         serializer = RoomSerializer(room, many=True)
         return Response(serializer.data)
+
+
+# @api_view(['POST'])
+# @permission_classes((IsAdminUser,))
+# def upload_content(request):
+#     if request.method == 'POST':
+#         content = Content.objects.all()
+#         serializer = ContentSerializer(content, many=True)
+#         if serializer.is_valid():
+#             serializer.save()
+#
+#         return Response(serializer.data)
+
+
+# class FileUploadView(APIView):
+#     # parser_classes = (FileUploadParser,)
+@api_view(['GET', 'PUT', 'DELETE'])
+def FileUploadView(request):
+
+    try:
+        content = Content.objects.all()
+    except Content.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = ContentSerializer(content, context={'request': request}, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = ContentSerializer(content, data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        content.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
